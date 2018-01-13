@@ -77,22 +77,54 @@ class Node
         float path_Y_angle = 0;
         float approaching_angle = 0;
         float outgoing_angle = 0;
+        float inverse_approaching_angle = 0;
         if( neighbours.Contains( direction ) )
         {
             path_Y_angle = getYAngle( this.position, direction.position );
             if( current_position != this.position )
             {
                 approaching_angle = getYAngle( current_position, this.position );
-                float inverse_YRotation = ( Yrotation > 180 ) ? Yrotation - 180 : Yrotation + 180;
+                float inverse_YRotation = ( Yrotation >= 180 ) ? Yrotation - 180 : Yrotation + 180;
                 outgoing_angle = ( Mathf.Abs( approaching_angle - Yrotation ) < Mathf.Abs( approaching_angle - inverse_YRotation ) ) ? Yrotation : inverse_YRotation;
             }
             else
             {
                 return 1;
             }
-            return Mathf.Pow( ( 180f - Mathf.Abs( path_Y_angle - outgoing_angle ) ) / 180, 3 );
+            //return ( 180f - Mathf.Abs( path_Y_angle - outgoing_angle ) ) / 180;
+            inverse_approaching_angle = ( approaching_angle >= 180 ) ? approaching_angle - 180 : approaching_angle + 180;
+            if( inverse_approaching_angle < outgoing_angle )
+            {
+                if( path_Y_angle < inverse_approaching_angle )
+                {
+                    return ( inverse_approaching_angle - path_Y_angle ) / ( inverse_approaching_angle - outgoing_angle + 360 );
+                }
+                else if( path_Y_angle < outgoing_angle )
+                {
+                    return ( path_Y_angle - inverse_approaching_angle ) / ( outgoing_angle - inverse_approaching_angle );
+                }
+                else
+                {
+                    return ( inverse_approaching_angle + 360 - path_Y_angle ) / ( inverse_approaching_angle - outgoing_angle + 360 );
+                }
+            }
+            else
+            {
+                if( path_Y_angle < outgoing_angle )
+                {
+                    return ( path_Y_angle - inverse_approaching_angle + 360 ) / ( outgoing_angle - inverse_approaching_angle + 360 );
+                }
+                else if( path_Y_angle < inverse_approaching_angle )
+                {
+                    return ( inverse_approaching_angle - path_Y_angle ) / ( inverse_approaching_angle - outgoing_angle );
+                }
+                else
+                {
+                    return ( path_Y_angle - inverse_approaching_angle ) / ( outgoing_angle + 360 + inverse_approaching_angle );
+                }
+            }
         }
-        return 0;
+        return -1;
     }
 }
 
@@ -107,14 +139,15 @@ public class PathWalker : MonoBehaviour {
         }
         foreach( Node n in NodeMap.nodes.Values)
         {
+            Debug.Log( n.Id + " - " + n.position );
             n.calculateNeighbours( 5 );
         }
-        Node node3, node0;
-        NodeMap.nodes.TryGetValue( 3, out node3 );
-        NodeMap.nodes.TryGetValue( 0, out node0 );
+        Node node1, node0;
+        NodeMap.nodes.TryGetValue( 1, out node1 );
+        NodeMap.nodes.TryGetValue( 4, out node0 );
         foreach( Node n in NodeMap.nodes.Values )
         {
-            Debug.Log( node3.getProbability( n, node0.position ) );
+            Debug.Log( node1.getProbability( n, node0.position ) );
         }
 	}
 	
