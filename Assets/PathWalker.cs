@@ -10,9 +10,10 @@ class Path
     private List<Path> intersectedPaths = new List<Path>();
 }
 
-class NodeMap
+public class NodeMap
 {
     public static Dictionary<int, Node> nodes = new Dictionary<int, Node>();
+    public static bool hasFinishedInitializing = false;
 }
 
 class Node
@@ -31,14 +32,14 @@ class Node
         {
             position = t.position;
             Yrotation = t.rotation.eulerAngles.y;
-            if( Yrotation > 180 )
+            /*if( Yrotation >= 180 )
             {
                 Yrotation -= 180;
-            }
+            }*/
             Id = lastId++;
             isOccupied = false;
             neighbours = new List<Node>();
-            System.Console.WriteLine( go.name + ", rot: " + Yrotation + " pos: " + position + " Id: " + Id ); 
+            //System.Console.WriteLine( go.name + ", rot: " + Yrotation + " pos: " + position + " Id: " + Id ); 
         }
     }
 
@@ -57,8 +58,7 @@ class Node
         neighbours.Clear();
         foreach( Node n in NodeMap.nodes.Values )
         {
-            float distance = Mathf.Sqrt( Mathf.Pow( this.position.x - n.position.x, 2 ) + Mathf.Pow( this.position.y - n.position.y, 2 ) + Mathf.Pow( this.position.z - n.position.z, 2 ) );
-            if( ( this != n ) && ( distance < search_radius ) )
+            if( ( this != n ) && ( Vector3.Distance( this.position, n.position ) < search_radius ) )
             {
                 neighbours.Add( n );
             }
@@ -132,7 +132,7 @@ public class PathWalker : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        System.Console.WriteLine( "Here" );
+        const float neighbour_search_radius = 5;
         foreach( GameObject go in GameObject.FindGameObjectsWithTag( "TestPathNode" ) )
         {
             Node.tryRegisterNewNode( go );
@@ -140,15 +140,9 @@ public class PathWalker : MonoBehaviour {
         foreach( Node n in NodeMap.nodes.Values)
         {
             Debug.Log( n.Id + " - " + n.position );
-            n.calculateNeighbours( 5 );
+            n.calculateNeighbours( neighbour_search_radius );
         }
-        Node node1, node0;
-        NodeMap.nodes.TryGetValue( 1, out node1 );
-        NodeMap.nodes.TryGetValue( 4, out node0 );
-        foreach( Node n in NodeMap.nodes.Values )
-        {
-            Debug.Log( node1.getProbability( n, node0.position ) );
-        }
+
 	}
 	
 	// Update is called once per frame
