@@ -16,7 +16,7 @@ public class NodeMap
     public static bool hasFinishedInitializing = false;
 }
 
-class Node
+public class Node
 {
     public Vector3 position ;
     public float Yrotation ;
@@ -24,8 +24,9 @@ class Node
     public int Id;
     public static int lastId;
     public List<Node> neighbours;
+    public GameObject obj;
         
-    private Node( GameObject go )
+    public Node( GameObject go )
     {
         Transform t = go.GetComponent<Transform>();
         if( t != null )
@@ -39,6 +40,7 @@ class Node
             Id = lastId++;
             isOccupied = false;
             neighbours = new List<Node>();
+            obj = go;
             //System.Console.WriteLine( go.name + ", rot: " + Yrotation + " pos: " + position + " Id: " + Id ); 
         }
     }
@@ -72,6 +74,30 @@ class Node
         return Quaternion.FromToRotation( Vector3.forward, ( pos2 - pos1 ).normalized ).eulerAngles.y;
     }
 
+    private static float getInverseAngle( float angle )
+    {
+        return ( angle >= 180 ) ? angle - 180 : angle + 180;
+    }
+
+    private static float normalizeAngle( float a )
+    {
+        while( a >= 360 )
+            a -= 360;
+        while( a < 0 )
+            a += 360;
+        return a;
+    }
+
+    private static float getRotationAngle( float inA, float outA )
+    {
+        float cwra = normalizeAngle( outA - inA );
+        float acwra = -normalizeAngle( inA - outA );
+        if( -acwra < cwra )
+            return acwra;
+        else
+            return cwra;
+    }
+
     public float getProbability( Node direction, Vector3 current_position )
     {
         float path_Y_angle = 0;
@@ -80,19 +106,21 @@ class Node
         float inverse_approaching_angle = 0;
         if( neighbours.Contains( direction ) )
         {
+            if( direction.isOccupied )
+                return -1;
             path_Y_angle = getYAngle( this.position, direction.position );
             if( current_position != this.position )
             {
                 approaching_angle = getYAngle( current_position, this.position );
-                float inverse_YRotation = ( Yrotation >= 180 ) ? Yrotation - 180 : Yrotation + 180;
-                outgoing_angle = ( Mathf.Abs( approaching_angle - Yrotation ) < Mathf.Abs( approaching_angle - inverse_YRotation ) ) ? Yrotation : inverse_YRotation;
+                float inverse_YRotation = getInverseAngle( Yrotation );
+                outgoing_angle = ( Mathf.Abs( getRotationAngle( approaching_angle, Yrotation ) ) < Mathf.Abs( getRotationAngle( approaching_angle, inverse_YRotation ) ) ) ? Yrotation : inverse_YRotation;
             }
             else
             {
                 return 1;
             }
             //return ( 180f - Mathf.Abs( path_Y_angle - outgoing_angle ) ) / 180;
-            inverse_approaching_angle = ( approaching_angle >= 180 ) ? approaching_angle - 180 : approaching_angle + 180;
+            inverse_approaching_angle = getInverseAngle( approaching_angle );
             if( inverse_approaching_angle < outgoing_angle )
             {
                 if( path_Y_angle < inverse_approaching_angle )
@@ -120,7 +148,7 @@ class Node
                 }
                 else
                 {
-                    return ( path_Y_angle - inverse_approaching_angle ) / ( outgoing_angle + 360 + inverse_approaching_angle );
+                    return ( path_Y_angle - inverse_approaching_angle ) / ( outgoing_angle + 360 - inverse_approaching_angle );
                 }
             }
         }
@@ -132,8 +160,8 @@ public class PathWalker : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        const float neighbour_search_radius = 5;
-        foreach( GameObject go in GameObject.FindGameObjectsWithTag( "TestPathNode" ) )
+        const float neighbour_search_radius = 3.5f;
+        foreach( GameObject go in GameObject.FindGameObjectsWithTag( "PathNode" ) )
         {
             Node.tryRegisterNewNode( go );
         }
@@ -142,7 +170,7 @@ public class PathWalker : MonoBehaviour {
             Debug.Log( n.Id + " - " + n.position );
             n.calculateNeighbours( neighbour_search_radius );
         }
-
+        NodeMap.hasFinishedInitializing = true;
 	}
 	
 	// Update is called once per frame
