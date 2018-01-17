@@ -12,7 +12,7 @@ public class MoveFromAtoB : MonoBehaviour
 
     public float default_approach_radius;
     private float approach_radius;
-    private float amount_left_to_rotate;
+    private float amount_left_to_rotate_Y;
     private Vector3 rotation_pivot;
     private bool around_intermediary_point = false;
     private bool around_destination_point = false;
@@ -20,11 +20,14 @@ public class MoveFromAtoB : MonoBehaviour
     private bool move = false;
     public float stationary_rotation_speed = 30;
 
+    private static Vector3 getZeroYVector3( Vector3 v )
+    {
+        return new Vector3( v.x, 0, v.z );
+    }
+
     private static float getYAngle( Vector3 pos1, Vector3 pos2 )
     {
-        pos1.y = 0;
-        pos2.y = 0;
-        return Quaternion.FromToRotation( Vector3.forward, ( pos2 - pos1 ).normalized ).eulerAngles.y;
+        return Quaternion.FromToRotation( Vector3.forward, ( getZeroYVector3( pos2 ) - getZeroYVector3( pos1 ) ).normalized ).eulerAngles.y;
     }
 
     private static float getInverseAngle( float angle )
@@ -127,11 +130,11 @@ public class MoveFromAtoB : MonoBehaviour
         if( !LineLineIntersection( out rotation_pivot, rotation_end_point, Quaternion.Euler( 0, ( outgoing_angle - 90 ), 0 ) * Vector3.forward, rotation_start_point, Quaternion.Euler( 0, normalizeAngle( incoming_angle - 90 ), 0 ) * Vector3.forward ) )
         {
             rotation_pivot = intermediary;
-            amount_left_to_rotate = getRotationAngle( incoming_angle, outgoing_angle );
+            amount_left_to_rotate_Y = getRotationAngle( incoming_angle, outgoing_angle );
         }
         else
         {
-            amount_left_to_rotate = getRotationAngle( incoming_angle, outgoing_angle );
+            amount_left_to_rotate_Y = getRotationAngle( incoming_angle, outgoing_angle );
         }
     }
 
@@ -179,7 +182,7 @@ public class MoveFromAtoB : MonoBehaviour
         {
             if( rotation_pivot == intermediary )
             {
-                if( amount_left_to_rotate == 0 || Vector3.Distance( transform.position, rotation_pivot ) != 0f )
+                if( amount_left_to_rotate_Y == 0 || Vector3.Distance( transform.position, rotation_pivot ) != 0f )
                 {
                     moveOneStep();
                 }
@@ -190,7 +193,7 @@ public class MoveFromAtoB : MonoBehaviour
             }
             else
             {
-                if( amount_left_to_rotate != 0 )
+                if( amount_left_to_rotate_Y != 0 )
                 {
                     rotateOneStep();
                 }
@@ -217,7 +220,9 @@ public class MoveFromAtoB : MonoBehaviour
 
     private void moveOneStep()
     {
-        Vector3 movement = Quaternion.Euler( 0, transform.rotation.y, 0 ) * Vector3.forward * Time.deltaTime * speed;
+        float height;
+        Vector3 director = Vector3.forward;
+        Vector3 movement = Quaternion.Euler( 0, transform.rotation.y, 0 ) * director * Time.deltaTime * speed;
         if( around_destination_point && ( Vector3.Distance( this.transform.position, destination ) < movement.magnitude ) )
         {
             transform.position = destination;
@@ -228,29 +233,50 @@ public class MoveFromAtoB : MonoBehaviour
         }
         else
         {
+            if( around_intermediary_point )
+            {
+                height = intermediary.y;
+            }
+            else if( around_destination_point )
+            {
+                height = destination.y;
+            }
+            else
+            {
+                float distance = Vector3.Distance( getZeroYVector3( destination ), getZeroYVector3( transform.position ) ) - default_approach_radius;
+                if( distance < 0.01f )
+                {
+                    height = destination.y;
+                }
+                else
+                {
+                    height = this.transform.position.y + ( destination.y - this.transform.position.y ) / distance * movement.magnitude;
+                }
+            }
+            movement.y = height - transform.position.y;
             transform.Translate( movement );
         }
     }
 
     private void rotateOneStep()
     {
-        float amount_to_rotate = 360f / ( 2 * Mathf.PI * Vector3.Distance( rotation_pivot, intermediary ) / speed ) * Time.deltaTime * Mathf.Sign( amount_left_to_rotate );
-        if( Mathf.Abs( amount_left_to_rotate ) < Mathf.Abs( amount_to_rotate ) )
+        float amount_to_rotate = 360f / ( 2 * Mathf.PI * Vector3.Distance( rotation_pivot, intermediary ) / speed ) * Time.deltaTime * Mathf.Sign( amount_left_to_rotate_Y );
+        if( Mathf.Abs( amount_left_to_rotate_Y ) < Mathf.Abs( amount_to_rotate ) )
         {
-            amount_to_rotate = amount_left_to_rotate;
+            amount_to_rotate = amount_left_to_rotate_Y;
         }
-        amount_left_to_rotate -= amount_to_rotate;
+        amount_left_to_rotate_Y -= amount_to_rotate;
         transform.RotateAround( rotation_pivot, Vector3.up, amount_to_rotate );
     }
 
     private void rotateAroundSelf()
     {
-        float amount_to_rotate = stationary_rotation_speed * Time.deltaTime * Mathf.Sign( amount_left_to_rotate );
-        if( Mathf.Abs( amount_left_to_rotate ) < Mathf.Abs( amount_to_rotate ) )
+        float amount_to_rotate = stationary_rotation_speed * Time.deltaTime * Mathf.Sign( amount_left_to_rotate_Y );
+        if( Mathf.Abs( amount_left_to_rotate_Y ) < Mathf.Abs( amount_to_rotate ) )
         {
-            amount_to_rotate = amount_left_to_rotate;
+            amount_to_rotate = amount_left_to_rotate_Y;
         }
-        amount_left_to_rotate -= amount_to_rotate;
+        amount_left_to_rotate_Y -= amount_to_rotate;
         transform.RotateAround( rotation_pivot, Vector3.up, amount_to_rotate );
     }
 

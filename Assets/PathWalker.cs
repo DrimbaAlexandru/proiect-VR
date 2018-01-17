@@ -4,10 +4,45 @@ using UnityEngine;
 
 class Path
 {
-    private Node start { get; set; }
-    private Node end   { get; set; }
-    private bool isOccupied { get; set; }
-    private List<Path> intersectedPaths = new List<Path>();
+    public Node start { get; set; }
+    public Node end   { get; set; }
+    public bool _isOccupied;
+    public List<Path> intersectedPaths = new List<Path>();
+
+    public bool intersects( Path other )
+    {
+        if( this.start == other.start || this.start == other.end || this.end == other.start || this.end == other.end )
+        {
+            return false;
+        }
+        Vector3 p1 = Node.getZeroYVector3( this.start.position );
+        Vector3 p2 = Node.getZeroYVector3( this.end.position );
+        Vector3 p3 = Node.getZeroYVector3( other.start.position );
+        Vector3 p4 = Node.getZeroYVector3( other.end.position );
+        return false;
+    }
+}
+
+public class PathMap
+{
+    public static Dictionary<Node, List<Path>> paths = new Dictionary<Node, List<Path>>();
+
+    private static void registerNodeIfNotExists(Node n)
+    {
+        if( !paths.ContainsKey( n ) )
+        {
+            paths.Add( n, new List<Path>() );
+        }
+    }
+
+    public static void addPath( Path p )
+    {
+        registerNodeIfNotExists( p.start );
+        registerNodeIfNotExists( p.end );
+        paths[ p.start ].Add( p );
+        paths[ p.end ].Add( p );
+    }
+
 }
 
 public class NodeMap
@@ -18,8 +53,8 @@ public class NodeMap
 
 public class Node
 {
-    public Vector3 position ;
-    public float Yrotation ;
+    public Vector3 position;
+    public float Yrotation;
     public bool isOccupied;
     public int Id;
     public static int lastId;
@@ -33,15 +68,10 @@ public class Node
         {
             position = t.position;
             Yrotation = t.rotation.eulerAngles.y;
-            /*if( Yrotation >= 180 )
-            {
-                Yrotation -= 180;
-            }*/
             Id = lastId++;
             isOccupied = false;
             neighbours = new List<Node>();
             obj = go;
-            //System.Console.WriteLine( go.name + ", rot: " + Yrotation + " pos: " + position + " Id: " + Id ); 
         }
     }
 
@@ -67,11 +97,14 @@ public class Node
         }
     }
 
-    private static float getYAngle( Vector3 pos1, Vector3 pos2 )
+    public static Vector3 getZeroYVector3( Vector3 v )
     {
-        pos1.y = 0;
-        pos2.y = 0;
-        return Quaternion.FromToRotation( Vector3.forward, ( pos2 - pos1 ).normalized ).eulerAngles.y;
+        return new Vector3( v.x, 0, v.z );
+    }
+
+    public static float getYAngle( Vector3 pos1, Vector3 pos2 )
+    {
+        return Quaternion.FromToRotation( Vector3.forward, ( getZeroYVector3( pos2 ) - getZeroYVector3( pos1 ) ).normalized ).eulerAngles.y;
     }
 
     private static float getInverseAngle( float angle )
