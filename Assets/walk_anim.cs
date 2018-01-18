@@ -130,34 +130,6 @@ public class walk_anim : MonoBehaviour {
 
     private void Update()
     {
-        if (Input.GetKey(KeyCode.W))
-        {
-            Debug.Log("W");
-            anim.Play("asdgahvc");
-        }
-        else
-            if (Input.GetKey(KeyCode.S) || Input.GetKeyUp(KeyCode.W))
-            {
-            Debug.Log("S");
-            anim.Stop("asdgahvc");
-        }
-        else
-            if (Input.GetKey(KeyCode.A))
-            {
-            Debug.Log("A");
-            anim.Stop("asdgahvc");
-        }
-        else
-            if (Input.GetKey(KeyCode.D))
-            {
-            Debug.Log("D");
-            anim.Play("asdgahvc");
-        }
-        /*
-        if (Input.GetMouseButtonDown(0))
-            anim.Play("asdgahvc");
-        else
-            anim.Stop("asdgahvc");
-            */
+        anim.Play("asdgahvc");
     }
 }
