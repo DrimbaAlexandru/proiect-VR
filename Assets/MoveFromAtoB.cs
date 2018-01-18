@@ -7,8 +7,9 @@ public class MoveFromAtoB : MonoBehaviour
     public float speed = 1f;
     private Vector3 destination;
     private Vector3 intermediary;
-    private Node intermediary_node;
+    private Node intermediary_node = null;
     private Node destination_node;
+    private Node prev_intermediary_node;
 
     public float default_approach_radius;
     private float approach_radius;
@@ -19,65 +20,6 @@ public class MoveFromAtoB : MonoBehaviour
 
     private bool move = false;
     public float stationary_rotation_speed = 30;
-
-    private static Vector3 getZeroYVector3( Vector3 v )
-    {
-        return new Vector3( v.x, 0, v.z );
-    }
-
-    private static float getYAngle( Vector3 pos1, Vector3 pos2 )
-    {
-        return Quaternion.FromToRotation( Vector3.forward, ( getZeroYVector3( pos2 ) - getZeroYVector3( pos1 ) ).normalized ).eulerAngles.y;
-    }
-
-    private static float getInverseAngle( float angle )
-    {
-        return ( angle >= 180 ) ? angle - 180 : angle + 180;
-    }
-
-    private static float normalizeAngle( float a )
-    {
-        while( a >= 360 )
-            a -= 360;
-        while( a < 0 )
-            a += 360;
-        return a;
-    }
-
-    private static float getRotationAngle( float inA, float outA )
-    {
-        float cwra = normalizeAngle( outA - inA );
-        float acwra = -normalizeAngle( inA - outA );
-        if( -acwra < cwra )
-            return acwra;
-        else
-            return cwra;
-    }
-
-    //Calculate the intersection point of two lines. Returns true if lines intersect, otherwise false.
-    //Note that in 3d, two lines do not intersect most of the time. So if the two lines are not in the 
-    //same plane, use ClosestPointsOnTwoLines() instead.
-    private static bool LineLineIntersection( out Vector3 intersection, Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2 )
-    {
-        Vector3 lineVec3 = linePoint2 - linePoint1;
-        Vector3 crossVec1and2 = Vector3.Cross( lineVec1, lineVec2 );
-        Vector3 crossVec3and2 = Vector3.Cross( lineVec3, lineVec2 );
-
-        float planarFactor = Vector3.Dot( lineVec3, crossVec1and2 );
-
-        //is coplanar, and not parrallel
-        if( Mathf.Abs( planarFactor ) < 0.0001f && crossVec1and2.sqrMagnitude > 0.0001f )
-        {
-            float s = Vector3.Dot( crossVec3and2, crossVec1and2 ) / crossVec1and2.sqrMagnitude;
-            intersection = linePoint1 + ( lineVec1 * s );
-            return true;
-        }
-        else
-        {
-            intersection = Vector3.zero;
-            return false;
-        }
-    }
 
     // Use this for initialization
     void Start()
@@ -106,6 +48,7 @@ public class MoveFromAtoB : MonoBehaviour
         Vector3 rotation_start_point, rotation_end_point;
         float incoming_angle, outgoing_angle;
 
+        prev_intermediary_node = intermediary_node;
         destination_node = dest;
         intermediary_node = interm;
         destination = dest.position;
@@ -114,8 +57,8 @@ public class MoveFromAtoB : MonoBehaviour
         around_destination_point = false;
         around_intermediary_point = false;
 
-        incoming_angle = getYAngle( transform.position, intermediary );
-        outgoing_angle = getYAngle( intermediary, destination );
+        incoming_angle = Utils.getYAngle( transform.position, intermediary );
+        outgoing_angle = Utils.getYAngle( intermediary, destination );
         approach_radius = Mathf.Min( default_approach_radius, Vector3.Distance( intermediary, this.transform.position ) );
         if( approach_radius < default_approach_radius )
         {
@@ -124,17 +67,17 @@ public class MoveFromAtoB : MonoBehaviour
 
         this.transform.rotation = Quaternion.Euler( transform.rotation.x, incoming_angle, transform.rotation.z );
 
-        rotation_start_point = intermediary + Quaternion.Euler( 0, getInverseAngle( incoming_angle ), 0 ) * Vector3.forward * approach_radius;
+        rotation_start_point = intermediary + Quaternion.Euler( 0, Utils.getInverseAngle( incoming_angle ), 0 ) * Vector3.forward * approach_radius;
         rotation_end_point = intermediary + Quaternion.Euler( 0, outgoing_angle, 0 ) * Vector3.forward * approach_radius;
 
-        if( !LineLineIntersection( out rotation_pivot, rotation_end_point, Quaternion.Euler( 0, ( outgoing_angle - 90 ), 0 ) * Vector3.forward, rotation_start_point, Quaternion.Euler( 0, normalizeAngle( incoming_angle - 90 ), 0 ) * Vector3.forward ) )
+        if( !Utils.LineLineIntersection( out rotation_pivot, rotation_end_point, Quaternion.Euler( 0, ( outgoing_angle - 90 ), 0 ) * Vector3.forward, rotation_start_point, Quaternion.Euler( 0, Utils.normalizeAngle( incoming_angle - 90 ), 0 ) * Vector3.forward ) )
         {
             rotation_pivot = intermediary;
-            amount_left_to_rotate_Y = getRotationAngle( incoming_angle, outgoing_angle );
+            amount_left_to_rotate_Y = Utils.getRotationAngle( incoming_angle, outgoing_angle );
         }
         else
         {
-            amount_left_to_rotate_Y = getRotationAngle( incoming_angle, outgoing_angle );
+            amount_left_to_rotate_Y = Utils.getRotationAngle( incoming_angle, outgoing_angle );
         }
     }
 
@@ -156,6 +99,15 @@ public class MoveFromAtoB : MonoBehaviour
                 {
                     intermediary_node.isOccupied = false;
                     intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
+                    if( prev_intermediary_node != null )
+                    {
+                        Path p = PathMap.getPath( intermediary_node, prev_intermediary_node );
+                        if( p != null )
+                        {
+                            p.isOccupied = false;
+                            Debug.Log( "Marked path " + p.start.Id + " -> " + p.end.Id + " as not occupied " );
+                        }
+                    }
                 }
             }
             around_intermediary_point = false;
@@ -174,6 +126,12 @@ public class MoveFromAtoB : MonoBehaviour
             {
                 intermediary_node.isOccupied = false;
                 intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
+                Path p = PathMap.getPath( intermediary_node, destination_node );
+                if( p != null )
+                {
+                    p.isOccupied = false;
+                    Debug.Log( "Marked path " + p.start.Id + " -> " + p.end.Id + " as not occupied " );
+                }
             }
             onApproachingDestination();
         }
@@ -243,7 +201,7 @@ public class MoveFromAtoB : MonoBehaviour
             }
             else
             {
-                float distance = Vector3.Distance( getZeroYVector3( destination ), getZeroYVector3( transform.position ) ) - default_approach_radius;
+                float distance = Vector3.Distance( Utils.getZeroYVector3( destination ), Utils.getZeroYVector3( transform.position ) ) - default_approach_radius;
                 if( distance < 0.01f )
                 {
                     height = destination.y;
@@ -315,6 +273,12 @@ public class MoveFromAtoB : MonoBehaviour
                 }
                 destination_node.isOccupied = true;
                 destination_node.obj.GetComponent<Renderer>().material.color = Color.red;
+                Path p = PathMap.getPath( intermediary_node, destination_node );
+                if( p != null )
+                {
+                    p.isOccupied = true;
+                    Debug.Log( "Marked path " + p.start.Id + " -> " + p.end.Id + " as occupied " );
+                }
                 break;
             }
         }
