@@ -6,11 +6,12 @@ using UnityEngine;
 public class walk_anim : MonoBehaviour {
     public Animation anim;
     public AnimationClip clip;
+    public string basename;
     void Start()
     {
         anim = GetComponent<Animation>();
         Transform[] all = transform.GetComponentsInChildren<Transform>();
-        Transform[] shldr = new Transform[4];
+        Transform[] shldr = new Transform[6];
         int k = 0;
         for (int i = 0; i < all.Length - 1; i++)
         {
@@ -67,52 +68,52 @@ public class walk_anim : MonoBehaviour {
 
     void moveSoulderLeft()
     {
-        this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 80), 15, -15);
+        this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 80), 15, -15);
     }
 
     void moveShoulderRight()
     {
-        this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, -80), 15, -15);
+        this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, -80), 15, -15);
     }
 
     void moveThighL()
     {
-        this.moveComponent("M3DMale/hip/pelvis/lThighBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
+        this.moveComponent(basename+"/hip/pelvis/lThighBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
     }
 
     void moveThighR()
     {
-        this.moveComponent("M3DMale/hip/pelvis/rThighBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
+        this.moveComponent(basename+"/hip/pelvis/rThighBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
     }
 
     void moveElbowLeft()
     {
-        this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend/lShldrTwist/lForearmBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 15, -15);
-        //this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend/lShldrTwist/lForearmBend", new Vector3(1, 0, 0), new Vector3(-5, 0, -80), 15, -15);
+        this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend/lShldrTwist/lForearmBend", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 15, -15);
+        //this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/lCollar/lShldrBend/lShldrTwist/lForearmBend", new Vector3(1, 0, 0), new Vector3(-5, 0, -80), 15, -15);
     }
 
     void moveElbowRight()
     {
-        this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend/rShldrTwist/rForearmBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 15, -15);
-        //this.moveComponent("M3DMale/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend/rShldrTwist/rForearmBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 80), 15, -15);
+        this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend/rShldrTwist/rForearmBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 15, -15);
+        //this.moveComponent(basename+"/hip/abdomenLower/abdomenUpper/chestLower/chestUpper/rCollar/rShldrBend/rShldrTwist/rForearmBend", new Vector3(-1, 0, 0), new Vector3(-5, 0, 80), 15, -15);
     }
 
     void moveKneeL()
     {
-        this.moveComponent("M3DMale/hip/pelvis/lThighBend/lThighTwist/lShin", new Vector3(-1, 0, 0), new Vector3(5, 0, 0), 15, -90);
-        //this.moveComponent("M3DMale/hip/pelvis/lThighBend/lThighTwist/lShin", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
+        this.moveComponent(basename+"/hip/pelvis/lThighBend/lThighTwist/lShin", new Vector3(-1, 0, 0), new Vector3(5, 0, 0), 15, -90);
+        //this.moveComponent(basename+"/hip/pelvis/lThighBend/lThighTwist/lShin", new Vector3(1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
     }
 
     void moveKneeR()
     {
-        this.moveComponent("M3DMale/hip/pelvis/rThighBend/rThighTwist/rShin", new Vector3(1, 0, 0), new Vector3(5, 0, 0), 15, -90);
-        //this.moveComponent("M3DMale/hip/pelvis/rThighBend/rThighTwist/rShin", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
+        this.moveComponent(basename+"/hip/pelvis/rThighBend/rThighTwist/rShin", new Vector3(1, 0, 0), new Vector3(5, 0, 0), 15, -90);
+        //this.moveComponent(basename+"/hip/pelvis/rThighBend/rThighTwist/rShin", new Vector3(-1, 0, 0), new Vector3(-5, 0, 0), 20, 0);
     }
 
     void moveWaist()
     {
-        this.moveComponent("M3DMale/hip/abdomenLower", new Vector3(0, -1, 0), new Vector3(0, 0, 0), 2, 0);
-        this.moveComponent("M3DMale/hip/abdomenLower", new Vector3(0, 0, 1), new Vector3(0, 0, 0), 2, 0);
+        this.moveComponent(basename+"/hip/abdomenLower", new Vector3(0, -1, 0), new Vector3(0, 0, 0), 2, 0);
+        this.moveComponent(basename+"/hip/abdomenLower", new Vector3(0, 0, 1), new Vector3(0, 0, 0), 2, 0);
     }
 
     void putAllTogether()

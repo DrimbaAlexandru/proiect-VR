@@ -80,6 +80,31 @@ public class NodeMap
 {
     public static Dictionary<int, Node> nodes = new Dictionary<int, Node>();
     public static bool hasFinishedInitializing = false;
+
+    public static Node getNodeInArea( Vector3 position, float minDist, float maxDist )
+    {
+        List<Node> candidates = new List<Node>();
+        foreach( Node n in nodes.Values )
+        {
+            float dist = Vector3.Distance( n.position, position );
+            if( dist >= minDist && dist <= maxDist )
+            {
+                candidates.Add( n );
+            }
+        }
+        if( candidates.Count == 0 )
+            return null;
+        else
+            return candidates[ ( int )( Random.value * ( candidates.Count - 1 ) ) ];
+    }
+
+    public static void generateNPC(Vector3 playerPosition)
+    {
+        Node n = getNodeInArea( playerPosition, 20, 50 );
+        if( n == null )
+            return;
+
+    }
 }
 
 public class Node

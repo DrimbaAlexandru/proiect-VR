@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class MoveFromAtoB : MonoBehaviour
 {
-    public float speed = 1f;
+    public float speed = 1.5f;
     private Vector3 destination;
     private Vector3 intermediary;
     private Node intermediary_node = null;
     private Node destination_node;
     private Node prev_intermediary_node;
 
-    public float default_approach_radius;
+    public float default_approach_radius = 0.5f;
     private float approach_radius;
     private float amount_left_to_rotate_Y;
     private Vector3 rotation_pivot;
@@ -19,7 +19,7 @@ public class MoveFromAtoB : MonoBehaviour
     private bool around_destination_point = false;
 
     private bool move = false;
-    public float stationary_rotation_speed = 30;
+    public float stationary_rotation_speed = 60;
 
     // Use this for initialization
     void Start()
@@ -37,10 +37,13 @@ public class MoveFromAtoB : MonoBehaviour
         }
         print( "Finished " + Time.time );
         Node i = new Node( this.gameObject );
-        i.position -= ( NodeMap.nodes[ 5 ].position - i.position ).normalized * 0.3f;
-
-        resetParams( NodeMap.nodes[ 5 ], i );
-        move = true;
+        Node first = NodeMap.getNodeInArea( this.transform.position, 1, 10 );
+        if( first != null )
+        {
+            i.position += ( first.position - i.position ).normalized * 0.3f;
+            resetParams( first, i );
+            move = true;
+        }
     }
 
     private void resetParams( Node dest, Node interm )
@@ -98,7 +101,7 @@ public class MoveFromAtoB : MonoBehaviour
                 if( intermediary_node.isOccupied == true )
                 {
                     intermediary_node.isOccupied = false;
-                    intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
+                    //intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
                     if( prev_intermediary_node != null )
                     {
                         Path p = PathMap.getPath( intermediary_node, prev_intermediary_node );
@@ -125,7 +128,7 @@ public class MoveFromAtoB : MonoBehaviour
             if( intermediary_node.isOccupied == true )
             {
                 intermediary_node.isOccupied = false;
-                intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
+                //intermediary_node.obj.GetComponent<Renderer>().material.color = Color.green;
                 Path p = PathMap.getPath( intermediary_node, destination_node );
                 if( p != null )
                 {
@@ -272,7 +275,7 @@ public class MoveFromAtoB : MonoBehaviour
                     Debug.Log( "!!!!!!!" );
                 }
                 destination_node.isOccupied = true;
-                destination_node.obj.GetComponent<Renderer>().material.color = Color.red;
+                //destination_node.obj.GetComponent<Renderer>().material.color = Color.red;
                 Path p = PathMap.getPath( intermediary_node, destination_node );
                 if( p != null )
                 {

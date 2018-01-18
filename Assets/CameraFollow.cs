@@ -19,7 +19,7 @@ public class CameraFollow : MonoBehaviour
 
     private void Start()
     {
-        offsetPosition = new Vector3(0, target.position.y + 2, transform.position.z - 2);
+        offsetPosition = new Vector3(0, target.position.y + 2.66f, transform.position.z - 2);
         //transform.localRotation = new Quaternion(0, 180, 0,1);
     }
 
@@ -50,7 +50,7 @@ public class CameraFollow : MonoBehaviour
         // compute rotation
         if (lookAt)
         {
-            transform.LookAt(target);
+            transform.LookAt( target.position + Vector3.up * 2 );
         }
         else
         {
